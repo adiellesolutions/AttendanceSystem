@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="RFID Attendance System Login - Secure access">
+    <title>Login - RFID Attendance System</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        .login-bg {
+            background: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-background) 100%);
+            min-height: 100vh;
+        }
+        
+        .login-card {
+            max-width: 400px;
+            width: 90%;
+            margin: 0 auto;
+        }
+        
+        .remember-checkbox {
+            accent-color: var(--color-primary);
+        }
+        
+        .password-toggle {
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .demo-hint {
+            background: var(--color-primary-50);
+            border: 1px solid var(--color-primary-200);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 16px 0;
+        }
+        
+        .role-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 4px;
+            text-transform: uppercase;
+        }
+        
+        .role-student {
+            background-color: var(--color-success-100);
+            color: var(--color-success-700);
+        }
+        
+        .role-teacher {
+            background-color: var(--color-primary-100);
+            color: var(--color-primary-700);
+        }
+        
+        .role-admin {
+            background-color: var(--color-accent-100);
+            color: var(--color-accent-700);
+        }
+    </style>
+</head>
+<body class="login-bg">
+    <!-- Login Container -->
+    <div class="min-h-screen flex items-center justify-center p-4 fade-in">
+        <div class="login-card card shadow-card">
+            <!-- Logo and Title -->
+            <div class="text-center mb-8">
+                <div class="flex justify-center mb-4">
+                    <svg class="w-16 h-16" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="64" height="64" rx="12" fill="#1E3A5F"/>
+                        <path d="M24 32L36 42L48 22" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="32" cy="32" r="20" stroke="#E67E22" stroke-width="3" stroke-dasharray="6 6"/>
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-heading font-bold text-text-primary mb-2">RFID Attendance System</h1>
+                <p class="text-text-secondary">Sign in to your account</p>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm">
+                <!-- Email/Username Field -->
+                <div class="mb-4">
+                    <label for="username" class="label">Email or User ID</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username"
+                        class="input w-full"
+                        placeholder="Enter email or ID"
+                        required
+                        autocomplete="username"
+                    >
+                </div>
+
+                <!-- Password Field -->
+                <div class="mb-6">
+                    <div class="relative">
+                        <label for="password" class="label">Password</label>
+
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password"
+                            class="input w-full pr-10"
+                            placeholder="Enter your password"
+                            required
+                            autocomplete="current-password"
+                        >
+                        <button 
+                            type="button" 
+                            class="absolute right-3 top-1/2 transform -translate-y-1/2 password-toggle"
+                            onclick="togglePassword()"
+                            aria-label="Toggle password visibility"
+                        >
+                            <img src="#" alt="Show password" id="passwordIcon" class="w-5 h-5">
+                        </button>
+                        <div class="flex justify-between items-center mb-2">
+                        <a href="#" class="text-sm text-primary hover:text-primary-600 transition-smooth">
+                            Forgot Password?
+                        </a>
+                    </div>
+                    </div>
+                </div>
+
+                <!-- Remember Me -->
+                <div class="flex items-center mb-4">
+                    <input 
+                        type="checkbox" 
+                        id="remember" 
+                        name="remember"
+                        class="w-4 h-4 rounded border-border text-primary focus:ring-accent remember-checkbox"
+                    >
+                    <label for="remember" class="ml-2 text-sm text-text-secondary cursor-pointer">
+                        Remember me
+                    </label>
+                </div>
+
+                <!-- Demo Accounts -->
+                <div class="demo-hint mb-4">
+                    <p class="text-sm font-medium text-primary mb-1">Demo Accounts:</p>
+                    <p class="text-xs text-text-secondary">
+                        • <span class="font-medium">Student:</span> student123 / pass123 
+                        <span class="role-badge role-student">Student</span><br>
+                        • <span class="font-medium">Teacher:</span> teacher456 / pass456 
+                        <span class="role-badge role-teacher">Teacher</span><br>
+                        • <span class="font-medium">Admin:</span> admin789 / pass789 
+                        <span class="role-badge role-admin">Admin</span>
+                    </p>
+                </div>
+
+                <!-- Login Button -->
+                <button type="submit" class="btn btn-primary w-full mb-4">
+                    <span id="loginText">Sign In</span>
+                    <span id="loadingSpinner" class="hidden">Loading...</span>
+                </button>
+
+                <!-- Error Message -->
+                <div id="errorMessage" class="hidden p-3 rounded-xl bg-error-50 border border-error-200 text-error text-sm mb-4">
+                    Invalid credentials. Please try again.
+                </div>
+            </form>
+
+            <!-- Links -->
+            <div class="text-center pt-4 border-t border-border">
+                <p class="text-sm text-text-secondary">
+                    Need help? 
+                    <a href="#" class="text-primary hover:text-primary-600 transition-smooth font-medium">
+                        Contact Support
+                    </a>
+                </p>
+                <p class="text-xs text-text-secondary mt-2">
+                    © 2026 RFID Attendance System
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Simple JavaScript -->
+    <script>
+        // Password toggle icons (using emoji as fallback)
+        const SHOW_ICON = '👁️';
+        const HIDE_ICON = '👁️‍🗨️';
+
+        // Toggle password visibility
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const passwordIcon = document.getElementById('passwordIcon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                passwordIcon.alt = 'Hide password';
+                passwordIcon.textContent = HIDE_ICON;
+            } else {
+                passwordInput.type = 'password';
+                passwordIcon.alt = 'Show password';
+                passwordIcon.textContent = SHOW_ICON;
+            }
+        }
+
+        // Initialize password icon
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordIcon = document.getElementById('passwordIcon');
+            passwordIcon.textContent = SHOW_ICON;
+            passwordIcon.style.fontSize = '18px';
+            passwordIcon.style.lineHeight = '1';
+        });
+
+        // Demo credentials with roles and redirect URLs
+        const demoUsers = {
+            'student123': { 
+                password: 'pass123', 
+                role: 'student',
+                redirect: 'student_dashboard.html'
+            },
+            'teacher456': { 
+                password: 'pass456', 
+                role: 'teacher',
+                redirect: 'teacher_dashboard.html'
+            },
+            'admin789': { 
+                password: 'pass789', 
+                role: 'admin',
+                redirect: 'admin_dashboard.html'  // You'll need to create this
+            }
+        };
+
+        // Form submission
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const form = e.target;
+            const username = form.username.value.trim();
+            const password = form.password.value;
+            const remember = form.remember.checked;
+            
+            // Show loading state
+            const loginBtn = form.querySelector('button[type="submit"]');
+            const loginText = document.getElementById('loginText');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            loginText.classList.add('hidden');
+            loadingSpinner.classList.remove('hidden');
+            errorMessage.classList.add('hidden');
+            loginBtn.disabled = true;
+            
+            // Simple validation
+            if (!username || !password) {
+                showError('Please fill in all fields');
+                resetButtonState();
+                return;
+            }
+            
+            // Simulate API call delay
+            setTimeout(() => {
+                // Check credentials
+                const user = demoUsers[username];
+                
+                if (user && user.password === password) {
+                    // Store login state if "Remember me" is checked
+                    if (remember) {
+                        localStorage.setItem('rememberLogin', 'true');
+                        localStorage.setItem('lastUsername', username);
+                        localStorage.setItem('userRole', user.role);
+                    } else {
+                        localStorage.removeItem('rememberLogin');
+                        localStorage.removeItem('lastUsername');
+                        localStorage.removeItem('userRole');
+                    }
+                    
+                    // Store current session
+                    sessionStorage.setItem('isLoggedIn', 'true');
+                    sessionStorage.setItem('currentUser', username);
+                    sessionStorage.setItem('currentRole', user.role);
+                    
+                    // Redirect based on role
+                    console.log(`Redirecting ${user.role} to: ${user.redirect}`);
+                    window.location.href = user.redirect;
+                } else {
+                    showError('Invalid username or password. Please try again.');
+                    resetButtonState();
+                }
+            }, 1000);
+
+            function resetButtonState() {
+                loginText.classList.remove('hidden');
+                loadingSpinner.classList.add('hidden');
+                loginBtn.disabled = false;
+            }
+        });
+
+        // Show error message
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            errorMessage.classList.remove('hidden');
+            
+            // Auto-hide error after 5 seconds
+            setTimeout(() => {
+                errorMessage.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Pre-fill last username if remembered
+        document.addEventListener('DOMContentLoaded', function() {
+            const remembered = localStorage.getItem('rememberLogin');
+            const lastUsername = localStorage.getItem('lastUsername');
+            
+            if (remembered === 'true' && lastUsername) {
+                document.getElementById('username').value = lastUsername;
+                document.getElementById('remember').checked = true;
+            }
+            
+            // Auto-focus on username field
+            document.getElementById('username').focus();
+            
+            // Check if user is already logged in (prevent back button issues)
+            if (sessionStorage.getItem('isLoggedIn') === 'true') {
+                const currentRole = sessionStorage.getItem('currentRole');
+                const user = demoUsers[sessionStorage.getItem('currentUser')];
+                
+                if (user && user.redirect) {
+                    console.log('User already logged in, redirecting...');
+                    window.location.href = user.redirect;
+                }
+            }
+        });
+
+        // Enter key to submit form
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.target.matches('button')) {
+                const activeElement = document.activeElement;
+                if (activeElement.tagName === 'INPUT') {
+                    document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+                }
+            }
+        });
+
+        // Auto-fill demo credentials when clicking demo hint
+        document.querySelector('.demo-hint').addEventListener('click', function(e) {
+            // Only auto-fill if clicking on a specific role line
+            const target = e.target;
+            if (target.tagName === 'SPAN' && target.classList.contains('font-medium')) {
+                const roleText = target.textContent.replace(':', '').trim().toLowerCase();
+                
+                let credentials = null;
+                if (roleText === 'student') {
+                    credentials = { username: 'student123', password: 'pass123' };
+                } else if (roleText === 'teacher') {
+                    credentials = { username: 'teacher456', password: 'pass456' };
+                } else if (roleText === 'admin') {
+                    credentials = { username: 'admin789', password: 'pass789' };
+                }
+                
+                if (credentials) {
+                    document.getElementById('username').value = credentials.username;
+                    document.getElementById('password').value = credentials.password;
+                    document.getElementById('username').focus();
+                }
+            }
+        });
+
+        // Quick fill buttons (optional enhancement)
+        function addQuickFillButtons() {
+            const demoHint = document.querySelector('.demo-hint');
+            const buttons = document.createElement('div');
+            buttons.className = 'flex space-x-2 mt-2';
+            buttons.innerHTML = `
+                <button type="button" class="text-xs px-2 py-1 rounded bg-success-100 text-success-700 hover:bg-success-200 transition-smooth" onclick="fillCredentials('student')">Fill Student</button>
+                <button type="button" class="text-xs px-2 py-1 rounded bg-primary-100 text-primary-700 hover:bg-primary-200 transition-smooth" onclick="fillCredentials('teacher')">Fill Teacher</button>
+                <button type="button" class="text-xs px-2 py-1 rounded bg-accent-100 text-accent-700 hover:bg-accent-200 transition-smooth" onclick="fillCredentials('admin')">Fill Admin</button>
+            `;
+            demoHint.appendChild(buttons);
+        }
+
+        function fillCredentials(role) {
+            let credentials = null;
+            if (role === 'student') {
+                credentials = { username: 'student123', password: 'pass123' };
+            } else if (role === 'teacher') {
+                credentials = { username: 'teacher456', password: 'pass456' };
+            } else if (role === 'admin') {
+                credentials = { username: 'admin789', password: 'pass789' };
+            }
+            
+            if (credentials) {
+                document.getElementById('username').value = credentials.username;
+                document.getElementById('password').value = credentials.password;
+                document.getElementById('username').focus();
+            }
+        }
+
+        // Add quick fill buttons after page loads
+        document.addEventListener('DOMContentLoaded', addQuickFillButtons);
+    </script>
+</body>
+</html>
