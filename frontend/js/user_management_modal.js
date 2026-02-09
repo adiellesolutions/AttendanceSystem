@@ -11,30 +11,30 @@ document.addEventListener("DOMContentLoaded", () => {
   const teacherSection = document.getElementById("teacher-section");
   const msgBox = document.getElementById("um_msg");
 
-  if (!modal || !openBtn || !closeBtn || !cancelBtn || !roleSelect || !form) {
-    console.error("Modal elements not found");
-    return;
-  }
+  /* ---------------- OPEN / CLOSE MODAL ---------------- */
 
-  /* OPEN / CLOSE MODAL */
   function openModal() {
     modal.classList.remove("modal-hidden");
     document.body.style.overflow = "hidden";
+    msgBox.textContent = "";
   }
 
-    function closeModal() {
-    const modal = document.getElementById("add-user-modal");
+  function closeModal() {
     modal.classList.add("modal-hidden");
     document.body.style.overflow = "";
 
-    const form = document.getElementById("add-user-form");
+    stopRFIDAutofill?.(); // stop RFID polling if active
+
     form.reset();
     delete form.dataset.editId;
 
-    document.getElementById("um_role").disabled = false;
+    roleSelect.disabled = false;
     document.querySelector("#add-user-modal h3").textContent = "Add New User";
-    }
-
+    roleSection.classList.add("hidden");
+    studentSection.classList.add("hidden");
+    teacherSection.classList.add("hidden");
+    msgBox.textContent = "";
+  }
 
   openBtn.addEventListener("click", openModal);
   closeBtn.addEventListener("click", closeModal);
@@ -44,14 +44,18 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.target === modal) closeModal();
   });
 
-  /* ROLE TOGGLE */
+  /* ---------------- ROLE TOGGLE ---------------- */
+
   roleSelect.addEventListener("change", e => {
     roleSection.classList.remove("hidden");
     studentSection.classList.add("hidden");
     teacherSection.classList.add("hidden");
 
+    stopRFIDAutofill?.(); // always stop first
+
     if (e.target.value === "student") {
       studentSection.classList.remove("hidden");
+      startRFIDAutofill?.(); // start RFID only for students
     }
 
     if (e.target.value === "teacher") {
@@ -59,12 +63,40 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  /* FORM SUBMIT */
+  /* ---------------- FORM SUBMIT ---------------- */
+
   form.addEventListener("submit", e => {
     e.preventDefault();
-    msgBox.textContent = "Saving...";
+    msgBox.textContent = "";
 
     const formData = new FormData(form);
+    const role = formData.get("role");
+
+    /* ---- BASIC VALIDATION ---- */
+    if (!formData.get("username") || !formData.get("password") || !role) {
+      msgBox.textContent = "Please complete account fields.";
+      return;
+    }
+
+    /* ---- STUDENT VALIDATION ---- */
+    if (role === "student") {
+      if (
+        !formData.get("student_id") ||
+        !formData.get("student_full_name") ||
+        !formData.get("guardian_full_name") ||
+        !formData.get("guardian_email")
+      ) {
+        msgBox.textContent = "Please complete all student and guardian fields.";
+        return;
+      }
+
+      if (!formData.get("card_uid")) {
+        msgBox.textContent = "Please scan RFID card before saving.";
+        return;
+      }
+    }
+
+    msgBox.textContent = "Saving...";
 
     fetch("../../backend/api/user_create.php", {
       method: "POST",
@@ -76,11 +108,11 @@ document.addEventListener("DOMContentLoaded", () => {
           closeModal();
           loadUsers(); // from user_management.js
         } else {
-          msgBox.textContent = msg;
+          msgBox.textContent = msg || "Save failed.";
         }
       })
       .catch(() => {
-        msgBox.textContent = "Server error. Try again.";
+        msgBox.textContent = "Server error. Please try again.";
       });
   });
 });

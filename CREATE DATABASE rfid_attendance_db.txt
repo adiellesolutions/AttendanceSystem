@@ -21,8 +21,7 @@ CREATE TABLE students (
     student_id VARCHAR(50) NOT NULL UNIQUE,
     full_name VARCHAR(150) NOT NULL,
     email VARCHAR(100),
-    grade_level VARCHAR(50),
-    section VARCHAR(50),
+   
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

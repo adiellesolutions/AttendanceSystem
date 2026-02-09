@@ -1,29 +1,31 @@
 <?php
 require "../db/db.php";
 
+header("Content-Type: text/plain");
+
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     http_response_code(405);
     exit("Method not allowed");
 }
 
-/* BASIC USER DATA */
-$username = $_POST["username"] ?? "";
+/* ---------------- BASIC USER DATA ---------------- */
+$username = trim($_POST["username"] ?? "");
 $password = $_POST["password"] ?? "";
 $role     = $_POST["role"] ?? "";
 $status   = $_POST["status"] ?? "active";
 
 if ($username === "" || $password === "" || $role === "") {
     http_response_code(400);
-    exit("Missing required fields");
+    exit("Missing account information");
 }
 
 $hashed = password_hash($password, PASSWORD_DEFAULT);
 
-/* START TRANSACTION */
+/* ---------------- START TRANSACTION ---------------- */
 $conn->begin_transaction();
 
 try {
-    /* INSERT USER */
+    /* ---------- INSERT USER ---------- */
     $stmt = $conn->prepare(
         "INSERT INTO users (username, password, role, status)
          VALUES (?, ?, ?, ?)"
@@ -33,16 +35,18 @@ try {
 
     $user_id = $stmt->insert_id;
 
-    /* STUDENT */
+    /* ================= STUDENT ================= */
     if ($role === "student") {
-        $student_id_input = $_POST["student_id"] ?? "";
-        $full_name        = $_POST["student_full_name"] ?? "";
-        $email            = $_POST["student_email"] ?? "";
+
+        $student_id_input = trim($_POST["student_id"] ?? "");
+        $full_name        = trim($_POST["student_full_name"] ?? "");
+        $email            = trim($_POST["student_email"] ?? "");
 
         if ($student_id_input === "" || $full_name === "") {
-            throw new Exception("Missing student information");
+            throw new Exception("Student information is incomplete");
         }
 
+        /* INSERT STUDENT */
         $stmt = $conn->prepare(
             "INSERT INTO students (user_id, student_id, full_name, email)
              VALUES (?, ?, ?, ?)"
@@ -52,19 +56,19 @@ try {
             $user_id,
             $student_id_input,
             $full_name,
-            $email
+            $email ?: null
         );
         $stmt->execute();
 
         $student_db_id = $stmt->insert_id;
 
-        /* GUARDIAN */
-        $guardian_name    = $_POST["guardian_full_name"] ?? "";
-        $guardian_email   = $_POST["guardian_email"] ?? "";
-        $guardian_contact = $_POST["guardian_contact_no"] ?? null;
+        /* ---------- GUARDIAN ---------- */
+        $guardian_name    = trim($_POST["guardian_full_name"] ?? "");
+        $guardian_email   = trim($_POST["guardian_email"] ?? "");
+        $guardian_contact = trim($_POST["guardian_contact_no"] ?? "");
 
         if ($guardian_name === "" || $guardian_email === "") {
-            throw new Exception("Guardian information is required");
+            throw new Exception("Guardian name and email are required");
         }
 
         $stmt = $conn->prepare(
@@ -76,16 +80,16 @@ try {
             $student_db_id,
             $guardian_name,
             $guardian_email,
-            $guardian_contact
+            $guardian_contact ?: null
         );
         $stmt->execute();
 
-        /* RFID CARD */
-        $card_uid    = $_POST["card_uid"] ?? "";
+        /* ---------- RFID CARD ---------- */
+        $card_uid    = trim($_POST["card_uid"] ?? "");
         $card_status = $_POST["card_status"] ?? "active";
 
         if ($card_uid === "") {
-            throw new Exception("RFID UID is required for students");
+            throw new Exception("RFID card UID is required");
         }
 
         $stmt = $conn->prepare(
@@ -101,8 +105,17 @@ try {
         $stmt->execute();
     }
 
-    /* TEACHER */
+    /* ================= TEACHER ================= */
     if ($role === "teacher") {
+
+        $teacher_id   = trim($_POST["teacher_id"] ?? "");
+        $teacher_name = trim($_POST["teacher_full_name"] ?? "");
+        $teacher_mail = trim($_POST["teacher_email"] ?? "");
+
+        if ($teacher_id === "" || $teacher_name === "") {
+            throw new Exception("Teacher information is incomplete");
+        }
+
         $stmt = $conn->prepare(
             "INSERT INTO teachers (user_id, teacher_id, full_name, email)
              VALUES (?, ?, ?, ?)"
@@ -110,20 +123,25 @@ try {
         $stmt->bind_param(
             "isss",
             $user_id,
-            $_POST["teacher_id"],
-            $_POST["teacher_full_name"],
-            $_POST["teacher_email"]
+            $teacher_id,
+            $teacher_name,
+            $teacher_mail ?: null
         );
         $stmt->execute();
     }
 
-    /* COMMIT EVERYTHING */
+    /* ---------------- COMMIT ---------------- */
     $conn->commit();
     echo "success";
 
 } catch (Exception $e) {
-    /* ROLLBACK ON ANY FAILURE */
     $conn->rollback();
     http_response_code(400);
-    echo $e->getMessage();
+
+    if (str_contains($e->getMessage(), "Duplicate entry")) {
+        echo "Username already exists. Please choose another one.";
+    } else {
+        echo $e->getMessage();
+    }
 }
+

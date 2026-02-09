@@ -1,3 +1,38 @@
+<?php
+session_start();
+require_once "../../backend/db/db.php";
+
+// block non-teachers
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'teacher') {
+    header("Location: login.php");
+    exit;
+}
+
+$userId = $_SESSION['user_id'];
+
+// get teacher info
+$sql = "
+    SELECT 
+        t.full_name,
+        u.profile_photo
+    FROM teachers t
+    JOIN users u ON u.id = t.user_id
+    WHERE u.id = ?
+";
+
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $userId);
+$stmt->execute();
+$teacher = $stmt->get_result()->fetch_assoc();
+
+$displayName = $teacher['full_name'] ?? "Teacher";
+
+$photoUrl = !empty($teacher['profile_photo'])
+    ? "../../uploads/" . $teacher['profile_photo']
+    : "https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop";
+?>
+
+
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
@@ -32,13 +67,17 @@
                 <!-- User Profile -->
                 <div class="flex items-center space-x-4">
                     <div class="flex items-center space-x-3">
-                        <img src="https://img.rocket.new/generatedImages/rocket_gen_img_14861b147-1763295364116.png" 
-                             alt="Teacher profile photo showing professional educator" 
-                             class="w-10 h-10 rounded-full object-cover border-2 border-primary"
-                             onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
-                        <div class="hidden sm:block">
-                            <p class="text-sm font-semibold text-text-primary">Prof. Michael Anderson</p>
-                        </div>
+                       <img src="<?= htmlspecialchars($photoUrl) ?>"
+     alt="Teacher profile photo"
+     class="w-10 h-10 rounded-full object-cover border-2 border-primary"
+     onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop'; this.onerror=null;">
+
+<div class="hidden sm:block">
+    <p class="text-sm font-semibold text-text-primary">
+        <?= htmlspecialchars($displayName) ?>
+    </p>
+</div>
+
                     </div>
 
                 <!-- Logout Button -->

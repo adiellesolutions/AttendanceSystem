@@ -1,3 +1,31 @@
+<?php
+session_start();
+require_once "../../backend/db/db.php";
+
+// block non-admin
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+    header("Location: login.php");
+    exit;
+}
+
+$userId = $_SESSION['user_id'];
+$displayRole = "admin";
+
+// get admin info
+$sql = "SELECT username, profile_photo FROM users WHERE id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $userId);
+$stmt->execute();
+$admin = $stmt->get_result()->fetch_assoc();
+
+$displayName = $admin['username'];
+
+$photoUrl = !empty($admin['profile_photo'])
+    ? "../../uploads/" . $admin['profile_photo']
+    : "https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop";
+?>
+
+
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
@@ -60,54 +88,60 @@
 
                 <!-- Desktop Navigation -->
                 <div class="hidden md:flex items-center space-x-1">
-                    <a href="admin_dashboard.html" class="px-4 py-2 rounded-xl text-text-secondary hover:bg-primary-50 hover:text-primary font-medium transition-smooth">
+                    <a href="admin_dashboard.php" class="px-4 py-2 rounded-xl text-text-secondary hover:bg-primary-50 hover:text-primary font-medium transition-smooth">
                         Dashboard
                     </a>
-                    <a href="user_management.html" class="px-4 py-2 rounded-xl bg-primary-50 text-primary font-medium transition-smooth">
+                    <a href="user_management.php" class="px-4 py-2 rounded-xl bg-primary-50 text-primary font-medium transition-smooth">
                         Users
                     </a>
-                    <a href="rfid_system_settings.html" class="px-4 py-2 rounded-xl text-text-secondary hover:bg-primary-50 hover:text-primary font-medium transition-smooth">
+                    <a href="rfid_system_settings.php" class="px-4 py-2 rounded-xl text-text-secondary hover:bg-primary-50 hover:text-primary font-medium transition-smooth">
                         Settings
                     </a>
                 </div>
 
-                <!-- User Profile -->
-                <div class="flex items-center space-x-4">
-                    <div class="flex items-center space-x-3">
-                    <img src="<?= htmlspecialchars($photoUrl) ?>"
-                        alt="Admin profile photo"
-                        class="w-10 h-10 rounded-full object-cover border-2 border-primary"
-                        onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop'; this.onerror=null;">
+                <!-- Admin User Profile -->
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center space-x-3">
+                            <img src="<?= htmlspecialchars($photoUrl) ?>"
+                                alt="Admin profile photo"
+                                class="w-10 h-10 rounded-full object-cover border-2 border-primary"
+                                onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop'; this.onerror=null;">
 
-                    <div class="hidden sm:block">
-                    <p class="text-sm font-semibold text-text-primary"><?= htmlspecialchars($displayName) ?></p>
-                    <p class="text-xs text-text-secondary"><?= htmlspecialchars(ucfirst($displayRole)) ?></p>
+                            <div class="hidden sm:block">
+                                <p class="text-sm font-semibold text-text-primary">
+                                    <?= htmlspecialchars($displayName) ?>
+                                </p>
+                                <p class="text-xs text-text-secondary">
+                                    Administrator
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
-                    </div>
-                    
                     <!-- Logout Button -->
-                    <button onclick="logout()"
-                        class="btn btn-outline h-10 px-4 text-sm flex items-center space-x-2
-                            hover:bg-error hover:text-white hover:border-error transition-smooth"
-                        aria-label="Logout"
-                        title="Logout from system">
+                    <button
+    onclick="window.location.href='../../backend/api/logout.php'"
+    class="btn btn-outline h-10 px-4 text-sm flex items-center space-x-2
+           hover:bg-error hover:text-white hover:border-error transition-smooth"
+    aria-label="Logout"
+    title="Logout from system"
+>
+    <!-- icon -->
+    <svg xmlns="http://www.w3.org/2000/svg"
+        class="w-4 h-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round"
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1
+               a2 2 0 01-2 2H5a2 2 0 01-2-2V7
+               a2 2 0 012-2h6a2 2 0 012 2v1" />
+    </svg>
 
-                        <!-- Logout Icon -->
-                        <svg xmlns="http://www.w3.org/2000/svg"
-                            class="w-4 h-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1
-                                    a2 2 0 01-2 2H5a2 2 0 01-2-2V7
-                                    a2 2 0 012-2h6a2 2 0 012 2v1" />
-                        </svg>
+    <span class="hidden sm:inline">Logout</span>
+</button>
 
-                        <span class="hidden sm:inline">Logout</span>
-                    </button>
 
                 </div>
 
@@ -427,12 +461,15 @@
                     <div>
                     <label class="label" for="um_card_uid">RFID UID *</label>
                     <input
-                        id="um_card_uid"
-                        name="card_uid"
-                        type="text"
-                        class="input w-full"
-                        placeholder="CARD_UID_12345">
-                    </div>
+  type="text"
+  id="um_card_uid"
+  name="card_uid"
+                          class="input w-full"
+
+  required
+  readonly
+>
+
 
                     <div>
                     <label class="label" for="um_card_status">Card Status *</label>
@@ -498,8 +535,7 @@
         </div>
     </div>
     </div>
-
-
+</div>
     <!-- Footer -->
     <footer class="bg-surface border-t border-border mt-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -542,9 +578,12 @@
         </div>
     </footer>
 
- 
+ <script src="../js/rfid_autofill.js"></script>
+
 <script src="../js/user_management_modal.js"></script>
 <script src="../js/user_management.js"></script>
-
+<script>
+  startRFIDAutofill();
+</script>
 </body>
 </html>
