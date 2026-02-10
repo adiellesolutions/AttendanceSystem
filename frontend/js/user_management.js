@@ -4,6 +4,67 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("search-input")?.addEventListener("input", loadUsers);
   document.getElementById("role-filter")?.addEventListener("change", loadUsers);
   document.getElementById("status-filter")?.addEventListener("change", loadUsers);
+
+  // ✅ Show role sections when choosing role in ADD mode
+  document.getElementById("um_role")?.addEventListener("change", (e) => {
+    const role = e.target.value;
+    showRoleSection(role);
+
+    // ✅ RFID autofill only when student role selected (ADD mode)
+    // If role select is disabled, it means EDIT mode; don't autofill.
+    if (role === "student" && !qs("um_role").disabled) startRFIDAutofill();
+    else stopRFIDAutofill();
+  });
+
+  // ✅ Submit handler (Create or Update)
+  const form = document.getElementById("add-user-form");
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const isEdit = !!form.dataset.editId;
+      const role = document.getElementById("um_role").value;
+
+      const payload = collectFormPayload(form, role, isEdit);
+      if (isEdit) payload.append("id", form.dataset.editId);
+
+      const url = isEdit
+        ? "../../backend/api/user_update.php"
+        : "../../backend/api/user_create.php";
+
+      try {
+        const res = await fetch(url, { method: "POST", body: payload });
+
+        // ✅ handle BOTH JSON and text responses
+        const ct = res.headers.get("content-type") || "";
+        let ok = false;
+        let message = "";
+
+        if (ct.includes("application/json")) {
+          const data = await res.json();
+          ok = res.ok && data.success !== false;
+          message = data.message || (ok ? "Success" : "Failed");
+        } else {
+          const text = await res.text();
+          ok = res.ok && text.trim().toLowerCase() === "success";
+          message = text;
+        }
+
+        if (!ok) throw new Error(message || "Request failed");
+
+        document.getElementById("um_msg").textContent = "Saved successfully!";
+        loadUsers();
+        closeModal();
+      } catch (err) {
+        console.error("Save failed:", err);
+        document.getElementById("um_msg").textContent = err.message || "Failed to save.";
+      }
+    });
+  }
+
+  // ✅ Close buttons if present
+  qs("close-modal-btn")?.addEventListener("click", closeModal);
+  qs("cancel-btn")?.addEventListener("click", closeModal);
 });
 
 /* ===============================
@@ -14,6 +75,8 @@ function badge(role) {
   if (role === "teacher") return "bg-secondary-100 text-secondary-700";
   return "bg-success-100 text-success-700";
 }
+
+function qs(id) { return document.getElementById(id); }
 
 /* ===============================
    LOAD USERS
@@ -29,12 +92,10 @@ function loadUsers() {
       return res.json();
     })
     .then(data => {
-      // 🔧 FIX: support both array and object responses
       const users = Array.isArray(data) ? data : data.users || [];
 
       const tbody = document.getElementById("user-table-body");
       const cards = document.getElementById("user-cards-section");
-
       if (!tbody || !cards) return;
 
       tbody.innerHTML = "";
@@ -52,7 +113,6 @@ function loadUsers() {
       }
 
       users.forEach(u => {
-        /* DESKTOP TABLE */
         tbody.insertAdjacentHTML("beforeend", `
           <tr>
             <td>${u.full_name ?? "—"}</td>
@@ -69,25 +129,6 @@ function loadUsers() {
               </button>
             </td>
           </tr>
-        `);
-
-        /* MOBILE CARD */
-        cards.insertAdjacentHTML("beforeend", `
-          <div class="card">
-            <div class="flex items-start justify-between mb-4">
-              <div>
-                <p class="font-semibold text-text-primary">${u.full_name ?? "—"}</p>
-                <p class="text-sm text-text-secondary">${u.assoc ?? ""}</p>
-              </div>
-              <span class="badge ${badge(u.role)}">${u.role}</span>
-            </div>
-
-            <div class="space-y-2 text-sm text-text-secondary">
-              <p>${u.email ?? "—"}</p>
-              <p>Last login: ${u.last_login ?? "—"}</p>
-              <span class="badge badge-success">${u.status}</span>
-            </div>
-          </div>
         `);
       });
 
@@ -117,67 +158,127 @@ document.addEventListener("click", e => {
    OPEN EDIT MODAL
 ================================ */
 function openEditModal(userId) {
-  fetch(`../../backend/api/user_get.php?id=${userId}`)
+  fetch(`../../backend/api/user_get.php?id=${encodeURIComponent(userId)}`)
     .then(res => {
       if (!res.ok) throw new Error("Failed to fetch user");
       return res.json();
     })
     .then(user => {
-      const modal = document.getElementById("add-user-modal");
-      const form  = document.getElementById("add-user-form");
-
+      const modal = qs("add-user-modal");
+      const form  = qs("add-user-form");
       if (!modal || !form) return;
 
-      modal.classList.remove("modal-hidden");
-      document.body.style.overflow = "hidden";
+      openModal();
 
       modal.querySelector("h3").textContent = "Edit User";
       form.dataset.editId = user.id;
 
-      document.getElementById("um_username").value = user.username;
-      document.getElementById("um_role").value = user.role;
-      toggleRoleSections(user.role);
+      // Password optional when editing
+      qs("um_password").required = false;
+      qs("um_password").value = "";
 
-      document.getElementById("um_status").value = user.status;
-      document.getElementById("um_role").disabled = true;
+      // Role cannot be changed
+      qs("um_role").disabled = true;
 
-      document.getElementById("role-specific-section").classList.remove("hidden");
-      document.getElementById("student-section").classList.add("hidden");
-      document.getElementById("teacher-section").classList.add("hidden");
+      // Fill account fields
+      qs("um_username").value = user.username ?? "";
+      qs("um_role").value     = user.role ?? "";
+      qs("um_status").value   = user.status ?? "active";
 
+      // Show correct section
+      showRoleSection(user.role);
+
+      // Stop RFID autofill in edit mode
       stopRFIDAutofill();
 
       if (user.role === "student" && user.student) {
         const s = user.student;
-        document.getElementById("student-section").classList.remove("hidden");
 
-        document.getElementById("um_student_id").value = s.student_id;
-        document.getElementById("um_student_fullname").value = s.full_name;
-        document.getElementById("um_student_email").value = s.email ?? "";
+        qs("um_student_id").value        = s.student_id ?? "";
+        qs("um_student_fullname").value  = s.full_name ?? "";
+        qs("um_student_email").value     = s.email ?? "";
 
-        document.getElementById("um_guardian_fullname").value = s.guardian_name ?? "";
-        document.getElementById("um_guardian_email").value = s.guardian_email ?? "";
-        document.getElementById("um_guardian_contact").value = s.contact_no ?? "";
+        qs("um_guardian_fullname").value = s.guardian_name ?? "";
+        qs("um_guardian_email").value    = s.guardian_email ?? "";
+        qs("um_guardian_contact").value  = s.contact_no ?? "";
 
-        document.getElementById("um_card_uid").value = s.card_uid ?? "";
-        document.getElementById("um_card_status").value = s.card_status ?? "active";
-
-        startRFIDAutofill();
+        qs("um_card_uid").value          = s.card_uid ?? "";
+        qs("um_card_status").value       = s.card_status ?? "active";
       }
 
       if (user.role === "teacher" && user.teacher) {
         const t = user.teacher;
-        document.getElementById("teacher-section").classList.remove("hidden");
 
-        document.getElementById("um_teacher_id").value = t.teacher_id;
-        document.getElementById("um_teacher_fullname").value = t.full_name;
-        document.getElementById("um_teacher_email").value = t.email ?? "";
+        qs("um_teacher_id").value        = t.teacher_id ?? "";
+        qs("um_teacher_fullname").value  = t.full_name ?? "";
+        qs("um_teacher_email").value     = t.email ?? "";
       }
     })
     .catch(err => {
       console.error("Edit modal error:", err);
       alert("Failed to load user details.");
     });
+}
+
+/* ===============================
+   MODAL OPEN/CLOSE
+================================ */
+function openModal() {
+  const modal = qs("add-user-modal");
+  if (!modal) return;
+
+  modal.classList.remove("modal-hidden");
+  document.body.style.overflow = "hidden";
+
+  // If opening for ADD mode, ensure defaults are correct
+  const form = qs("add-user-form");
+  if (form && !form.dataset.editId) {
+    qs("um_role").disabled = false;
+    qs("um_password").required = true;
+    qs("um_msg").textContent = "";
+  }
+}
+
+function closeModal() {
+  const modal = qs("add-user-modal");
+  const form  = qs("add-user-form");
+  if (!modal || !form) return;
+
+  modal.classList.add("modal-hidden");
+  document.body.style.overflow = "";
+
+  form.reset();
+  delete form.dataset.editId;
+
+  qs("um_role").disabled = false;
+  qs("um_password").required = true;
+
+  hideRoleSections();
+  stopRFIDAutofill();
+
+  modal.querySelector("h3").textContent = "Add New User";
+  qs("um_msg").textContent = "";
+}
+
+/* ===============================
+   ROLE SECTION TOGGLE
+================================ */
+function hideRoleSections() {
+  qs("role-specific-section")?.classList.add("hidden");
+  qs("student-section")?.classList.add("hidden");
+  qs("teacher-section")?.classList.add("hidden");
+}
+
+function showRoleSection(role) {
+  hideRoleSections();
+
+  if (role === "student") {
+    qs("role-specific-section")?.classList.remove("hidden");
+    qs("student-section")?.classList.remove("hidden");
+  } else if (role === "teacher") {
+    qs("role-specific-section")?.classList.remove("hidden");
+    qs("teacher-section")?.classList.remove("hidden");
+  }
 }
 
 /* ===============================
@@ -188,7 +289,7 @@ let rfidAutofillInterval = null;
 function startRFIDAutofill() {
   if (rfidAutofillInterval) return;
 
-  const rfidInput = document.getElementById("um_card_uid");
+  const rfidInput = qs("um_card_uid");
   if (!rfidInput) return;
 
   rfidAutofillInterval = setInterval(() => {
@@ -197,9 +298,7 @@ function startRFIDAutofill() {
     fetch("../../backend/api/rfid_latest.php")
       .then(res => res.json())
       .then(data => {
-        if (data?.uid) {
-          rfidInput.value = data.uid;
-        }
+        if (data?.uid) rfidInput.value = data.uid;
       })
       .catch(() => {});
   }, 1000);
@@ -211,3 +310,51 @@ function stopRFIDAutofill() {
     rfidAutofillInterval = null;
   }
 }
+
+/* ===============================
+   FORM PAYLOAD BUILDER
+================================ */
+function collectFormPayload(form, role, isEdit = false) {
+  const fd = new FormData(form);
+  const payload = new FormData();
+
+  payload.append("username", fd.get("username") || "");
+
+  // ✅ IMPORTANT: role select is disabled during edit, so fd.get("role") becomes null
+  payload.append("role", document.getElementById("um_role")?.value || "");
+
+  payload.append("status", fd.get("status") || "active");
+
+  // password: only send if create OR user typed something
+  const pw = (fd.get("password") || "").toString();
+  if (!isEdit || pw.length > 0) payload.append("password", pw);
+
+  // profile photo (optional)
+  const photo = fd.get("profile_photo");
+  if (photo && photo instanceof File && photo.size > 0) {
+    payload.append("profile_photo", photo);
+  }
+
+  // Role-specific
+  if (role === "student") {
+    payload.append("student_id", fd.get("student_id") || "");
+    payload.append("student_full_name", fd.get("student_full_name") || "");
+    payload.append("student_email", fd.get("student_email") || "");
+
+    payload.append("guardian_full_name", fd.get("guardian_full_name") || "");
+    payload.append("guardian_email", fd.get("guardian_email") || "");
+    payload.append("guardian_contact_no", fd.get("guardian_contact_no") || "");
+
+    payload.append("card_uid", fd.get("card_uid") || "");
+    payload.append("card_status", fd.get("card_status") || "active");
+  }
+
+  if (role === "teacher") {
+    payload.append("teacher_id", fd.get("teacher_id") || "");
+    payload.append("teacher_full_name", fd.get("teacher_full_name") || "");
+    payload.append("teacher_email", fd.get("teacher_email") || "");
+  }
+
+  return payload;
+}
+

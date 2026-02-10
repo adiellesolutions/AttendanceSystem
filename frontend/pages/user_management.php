@@ -2,10 +2,10 @@
 session_start();
 require_once "../../backend/db/db.php";
 
-// block non-admin
+//block non-admin
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header("Location: login.php");
-    exit;
+header("Location: login.php");
+ exit;
 }
 
 $userId = $_SESSION['user_id'];
@@ -283,259 +283,280 @@ $photoUrl = !empty($admin['profile_photo'])
         </section>
     </main>
 
-    <!-- Add User Modal (DB-aligned) -->
-    <div id="add-user-modal" class="modal-overlay modal-hidden">
-    <div class="modal-content">
-        <div class="p-8 modal-scroll">
+   <!-- Add User Modal (DB-aligned) -->
+<div id="add-user-modal" class="modal-overlay modal-hidden">
+  <div class="modal-content">
+    <div class="p-8 modal-scroll">
 
-        <!-- Modal Header -->
-        <div class="flex items-center justify-between mb-6">
-            <div>
-            <h3 class="text-2xl font-heading font-bold text-text-primary mb-1">Add New User</h3>
-            <p class="text-sm text-text-secondary">Create a new account with role-based permissions</p>
-            </div>
-
-            <button
-            id="close-modal-btn"
-            class="p-2 rounded-xl hover:bg-primary-50 transition-smooth touch-target"
-            aria-label="Close modal"
-            type="button">
-            ✕
-            </button>
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h3 class="text-2xl font-heading font-bold text-text-primary mb-1">Add New User</h3>
+          <p class="text-sm text-text-secondary">Create a new account with role-based permissions</p>
         </div>
 
-        <!-- Modal Form -->
-        <form id="add-user-form" class="space-y-6" novalidate>
+        <button
+          id="close-modal-btn"
+          class="p-2 rounded-xl hover:bg-primary-50 transition-smooth touch-target"
+          aria-label="Close modal"
+          type="button">
+          ✕
+        </button>
+      </div>
 
-            <!-- Account (users table) -->
-            <div>
-            <h4 class="text-lg font-heading font-semibold text-text-primary mb-4 pb-2 border-b border-border">
-                Account
-            </h4>
+      <!-- Modal Form -->
+      <form id="add-user-form" class="space-y-6" novalidate>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="md:col-span-2">
-                <label class="label" for="um_username">Username *</label>
-                <input
-                    id="um_username"
-                    name="username"
-                    type="text"
-                    required
-                    class="input w-full"
-                    placeholder="email or school ID"
-                    autocomplete="username">
-                <p class="text-xs text-text-secondary mt-1">Must be unique (stored in users.username)</p>
-                </div>
+        <!-- Account (users table) -->
+        <div>
+          <h4 class="text-lg font-heading font-semibold text-text-primary mb-4 pb-2 border-b border-border">
+            Account
+          </h4>
 
-                <div>
-                <label class="label" for="um_role">User Role *</label>
-                <select id="um_role" name="role" required class="input w-full">
-                    <option value="">Select role</option>
-                    <option value="admin">Admin</option>
-                    <option value="teacher">Teacher</option>
-                    <option value="student">Student</option>
-                </select>
-                </div>
-
-                <div>
-                <label class="label" for="um_status">Account Status *</label>
-                <select id="um_status" name="status" required class="input w-full">
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                </select>
-                </div>
-
-                <div class="md:col-span-2">
-                <label class="label" for="um_password">Temporary Password *</label>
-                <input
-                    id="um_password"
-                    name="password"
-                    type="password"
-                    required
-                    class="input w-full"
-                    placeholder="Enter temporary password"
-                    autocomplete="new-password">
-                </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="md:col-span-2">
+              <label class="label" for="um_username">Username *</label>
+              <input
+                id="um_username"
+                name="username"
+                type="text"
+                required
+                class="input w-full"
+                placeholder="email or school ID"
+                autocomplete="username">
+              <p class="text-xs text-text-secondary mt-1">Must be unique (stored in users.username)</p>
             </div>
+
+            <div>
+              <label class="label" for="um_role">User Role *</label>
+              <select id="um_role" name="role" required class="input w-full">
+                <option value="">Select role</option>
+                <option value="admin">Admin</option>
+                <option value="teacher">Teacher</option>
+                <option value="student">Student</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="label" for="um_status">Account Status *</label>
+              <select id="um_status" name="status" required class="input w-full">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
             </div>
 
             <div class="md:col-span-2">
-            <label class="label" for="um_profile_photo">Profile Picture (optional)</label>
-            <input
+              <label class="label" for="um_password">Temporary Password *</label>
+              <input
+                id="um_password"
+                name="password"
+                type="password"
+                required
+                class="input w-full"
+                placeholder="Enter temporary password"
+                autocomplete="new-password">
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="label" for="um_profile_photo">Profile Picture (optional)</label>
+              <input
                 id="um_profile_photo"
                 name="profile_photo"
                 type="file"
-                accept="image/*"
-            >
-            <p class="text-xs text-text-secondary mt-1">JPG/PNG/WEBP, max 2MB.</p>
+                accept="image/*">
+              <p class="text-xs text-text-secondary mt-1">JPG/PNG/WEBP, max 2MB.</p>
             </div>
-
-
-            <!-- Role specific -->
-            <div id="role-specific-section" class="hidden">
-            <h4 class="text-lg font-heading font-semibold text-text-primary mb-4 pb-2 border-b border-border">
-                Role-Specific
-            </h4>
-
-            <!-- STUDENT (students + guardians + rfid_cards) -->
-            <div id="student-section" class="hidden space-y-6">
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="label" for="um_student_id">Student ID *</label>
-                    <input
-                    id="um_student_id"
-                    name="student_id"
-                    type="text"
-                    class="input w-full"
-                    placeholder="STU-2024-1156">
-                </div>
-
-                <div>
-                    <label class="label" for="um_student_email">Student Email (optional)</label>
-                    <input
-                    id="um_student_email"
-                    name="student_email"
-                    type="email"
-                    class="input w-full"
-                    placeholder="student@email.com"
-                    autocomplete="email">
-                </div>
-
-                <div class="md:col-span-2">
-                    <label class="label" for="um_student_fullname">Student Full Name *</label>
-                    <input
-                    id="um_student_fullname"
-                    name="student_full_name"
-                    type="text"
-                    class="input w-full"
-                    placeholder="Student full name">
-                </div>
-                </div>
-
-                <div class="pt-4 border-t border-border"></div>
-
-                <div>
-                <h5 class="font-semibold text-text-primary mb-3">Guardian Information</h5>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="md:col-span-2">
-                    <label class="label" for="um_guardian_fullname">Guardian Full Name *</label>
-                    <input
-                        id="um_guardian_fullname"
-                        name="guardian_full_name"
-                        type="text"
-                        class="input w-full"
-                        placeholder="Guardian full name">
-                    </div>
-
-                    <div>
-                    <label class="label" for="um_guardian_email">Guardian Email *</label>
-                    <input
-                        id="um_guardian_email"
-                        name="guardian_email"
-                        type="email"
-                        class="input w-full"
-                        placeholder="guardian@email.com"
-                        autocomplete="email">
-                    </div>
-
-                    <div>
-                    <label class="label" for="um_guardian_contact">Guardian Contact No. (optional)</label>
-                    <input
-                        id="um_guardian_contact"
-                        name="guardian_contact_no"
-                        type="text"
-                        class="input w-full"
-                        placeholder="09xxxxxxxxx">
-                    </div>
-                </div>
-                </div>
-
-                <div class="pt-4 border-t border-border"></div>
-
-                <div>
-                <h5 class="font-semibold text-text-primary mb-3">RFID Card</h5>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                    <label class="label" for="um_card_uid">RFID UID *</label>
-                    <input
-  type="text"
-  id="um_card_uid"
-  name="card_uid"
-                          class="input w-full"
-
-  required
-  readonly
->
-
-
-                    <div>
-                    <label class="label" for="um_card_status">Card Status *</label>
-                    <select id="um_card_status" name="card_status" class="input w-full">
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                        <option value="lost">Lost</option>
-                    </select>
-                    </div>
-                </div>
-                </div>
-
-            </div>
-
-            <!-- TEACHER (teachers) -->
-            <div id="teacher-section" class="hidden space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="label" for="um_teacher_id">Teacher ID *</label>
-                    <input
-                    id="um_teacher_id"
-                    name="teacher_id"
-                    type="text"
-                    class="input w-full"
-                    placeholder="TCH-2024-042">
-                </div>
-
-                <div>
-                    <label class="label" for="um_teacher_email">Teacher Email (optional)</label>
-                    <input
-                    id="um_teacher_email"
-                    name="teacher_email"
-                    type="email"
-                    class="input w-full"
-                    placeholder="teacher@email.com"
-                    autocomplete="email">
-                </div>
-
-                <div class="md:col-span-2">
-                    <label class="label" for="um_teacher_fullname">Teacher Full Name *</label>
-                    <input
-                    id="um_teacher_fullname"
-                    name="teacher_full_name"
-                    type="text"
-                    class="input w-full"
-                    placeholder="Teacher full name">
-                </div>
-                </div>
-            </div>
-
-            </div>
-
-            <!-- Message -->
-            <div id="um_msg" class="text-sm"></div>
-
-            <!-- Actions -->
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-6 border-t border-border">
-            <button type="button" id="cancel-btn" class="btn-outline h-12 px-6">Cancel</button>
-            <button type="submit" class="btn btn-primary h-12 px-6">Create User Account</button>
-            </div>
-
-        </form>
+          </div>
         </div>
+
+        <!-- Role specific -->
+        <div id="role-specific-section" class="hidden">
+          <h4 class="text-lg font-heading font-semibold text-text-primary mb-4 pb-2 border-b border-border">
+            Role-Specific
+          </h4>
+
+          <!-- STUDENT (students + guardians + rfid_cards) -->
+          <div id="student-section" class="hidden space-y-6">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="label" for="um_student_id">Student ID *</label>
+                <input id="um_student_id" name="student_id" type="text" class="input w-full" placeholder="2024-001">
+              </div>
+
+              <div>
+                <label class="label" for="um_student_email">Student Email (optional)</label>
+                <input id="um_student_email" name="student_email" type="email" class="input w-full"
+                       placeholder="student@email.com" autocomplete="email">
+              </div>
+
+              <div class="md:col-span-2">
+                <label class="label" for="um_student_fullname">Student Full Name *</label>
+                <input id="um_student_fullname" name="student_full_name" type="text" class="input w-full"
+                       placeholder="Student full name">
+              </div>
+            </div>
+
+            <div class="pt-4 border-t border-border"></div>
+
+            <div>
+              <h5 class="font-semibold text-text-primary mb-3">Guardian Information</h5>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="md:col-span-2">
+                  <label class="label" for="um_guardian_fullname">Guardian Full Name *</label>
+                  <input id="um_guardian_fullname" name="guardian_full_name" type="text" class="input w-full"
+                         placeholder="Guardian full name">
+                </div>
+
+                <div>
+                  <label class="label" for="um_guardian_email">Guardian Email *</label>
+                  <input id="um_guardian_email" name="guardian_email" type="email" class="input w-full"
+                         placeholder="guardian@email.com" autocomplete="email">
+                </div>
+
+                <div>
+                  <label class="label" for="um_guardian_contact">Guardian Contact No. (optional)</label>
+                  <input id="um_guardian_contact" name="guardian_contact_no" type="text" class="input w-full"
+                         placeholder="09xxxxxxxxx">
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-4 border-t border-border"></div>
+
+            <div>
+              <h5 class="font-semibold text-text-primary mb-3">RFID Card</h5>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="label" for="um_card_uid">RFID UID *</label>
+                  <input
+                    type="text"
+                    id="um_card_uid"
+                    name="card_uid"
+                    class="input w-full"
+                    placeholder="Auto-filled from scan"
+                    readonly>
+                </div>
+
+                <div>
+                  <label class="label" for="um_card_status">Card Status *</label>
+                  <select id="um_card_status" name="card_status" class="input w-full">
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="lost">Lost</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- TEACHER (teachers) -->
+          <div id="teacher-section" class="hidden space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="label" for="um_teacher_id">Teacher ID *</label>
+                <input id="um_teacher_id" name="teacher_id" type="text" class="input w-full" placeholder="T-1001">
+              </div>
+
+              <div>
+                <label class="label" for="um_teacher_email">Teacher Email (optional)</label>
+                <input id="um_teacher_email" name="teacher_email" type="email" class="input w-full"
+                       placeholder="teacher@email.com" autocomplete="email">
+              </div>
+
+              <div class="md:col-span-2">
+                <label class="label" for="um_teacher_fullname">Teacher Full Name *</label>
+                <input id="um_teacher_fullname" name="teacher_full_name" type="text" class="input w-full"
+                       placeholder="Teacher full name">
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Message -->
+        <div id="um_msg" class="text-sm"></div>
+
+        <!-- Actions -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-6 border-t border-border">
+          <button type="button" id="cancel-btn" class="btn-outline h-12 px-6">Cancel</button>
+          <button type="submit" class="btn btn-primary h-12 px-6">Save</button>
+        </div>
+
+      </form>
     </div>
-    </div>
+  </div>
 </div>
+
+<script>
+  // --- Role-based show/hide + required toggling ---
+  const roleSelect = document.getElementById('um_role');
+  const roleSpecific = document.getElementById('role-specific-section');
+  const studentSection = document.getElementById('student-section');
+  const teacherSection = document.getElementById('teacher-section');
+
+  // Inputs that should be required ONLY for student
+  const studentRequiredIds = [
+    'um_student_id',
+    'um_student_fullname',
+    'um_guardian_fullname',
+    'um_guardian_email'
+    // NOTE: um_card_uid is readonly; keep it optional unless you want to enforce scan before save
+  ];
+
+  // Inputs that should be required ONLY for teacher
+  const teacherRequiredIds = [
+    'um_teacher_id',
+    'um_teacher_fullname'
+  ];
+
+  function setRequired(ids, isRequired) {
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (isRequired) el.setAttribute('required', 'required');
+      else el.removeAttribute('required');
+    });
+  }
+
+  function hideAllRoleSections() {
+    studentSection.classList.add('hidden');
+    teacherSection.classList.add('hidden');
+    roleSpecific.classList.add('hidden');
+
+    // remove role-specific required flags
+    setRequired(studentRequiredIds, false);
+    setRequired(teacherRequiredIds, false);
+  }
+
+  function handleRoleChange() {
+    const role = roleSelect.value;
+
+    // default: hide everything
+    hideAllRoleSections();
+
+    if (role === 'student') {
+      roleSpecific.classList.remove('hidden');
+      studentSection.classList.remove('hidden');
+      setRequired(studentRequiredIds, true);
+    } else if (role === 'teacher') {
+      roleSpecific.classList.remove('hidden');
+      teacherSection.classList.remove('hidden');
+      setRequired(teacherRequiredIds, true);
+    }
+    // admin: no extra fields shown
+  }
+
+  // run once on load (in case there is preselected value)
+  handleRoleChange();
+
+  // update whenever role changes
+  roleSelect.addEventListener('change', handleRoleChange);
+</script>
+
     <!-- Footer -->
     <footer class="bg-surface border-t border-border mt-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

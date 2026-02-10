@@ -81,11 +81,13 @@ $photoUrl = !empty($teacher['profile_photo'])
                     </div>
 
                 <!-- Logout Button -->
-                    <button onclick="logout()"
-                        class="btn btn-outline h-10 px-4 text-sm flex items-center space-x-2
-                            hover:bg-error hover:text-white hover:border-error transition-smooth"
-                        aria-label="Logout"
-                        title="Logout from system">
+                <button
+    onclick="window.location.href='../../backend/api/logout.php'"
+    class="btn btn-outline h-10 px-4 text-sm flex items-center space-x-2
+           hover:bg-error hover:text-white hover:border-error transition-smooth"
+    aria-label="Logout"
+    title="Logout from system"
+>
 
                         <!-- Logout Icon -->
                         <svg xmlns="http://www.w3.org/2000/svg"
@@ -122,91 +124,47 @@ $photoUrl = !empty($teacher['profile_photo'])
 
 
 
-        <!-- Real-time Scan Notifications -->
+                <!-- Real-time Scan Notifications -->
         <section id="realtime-updates" class="mb-8">
-            <div class="card">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-heading font-semibold text-text-primary">Recent RFID Scans</h3>
-                    <span class="flex items-center space-x-2 text-sm text-success">
-                        <span class="w-2 h-2 rounded-full bg-success animate-pulse"></span>
-                        <span>Live Updates</span>
-                    </span>
-                </div>
-                
-                <div class="space-y-3">
-                    <!-- Recent Scan 1 -->
-                    <div class="flex items-center justify-between p-3 rounded-xl bg-success-50 border border-success-200">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-8 h-8 rounded-full bg-success flex items-center justify-center">
-                                <img src="https://img.rocket.new/generatedImages/rocket_gen_img_10c798953-1767645351700.png" alt="Entry icon" class="w-4 h-4">
-                            </div>
-                            <div>
-                                <p class="font-semibold text-text-primary text-sm">Emma Rodriguez</p>
-                                <p class="text-xs text-text-secondary">STU-2024-1156</p>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <span class="badge badge-success text-xs">Entry</span>
-                            <p class="text-xs text-text-secondary mt-1">6:17 AM</p>
-                        </div>
-                    </div>
-
-                    <!-- Recent Scan 2 -->
-                    <div class="flex items-center justify-between p-3 rounded-xl bg-warning-50 border border-warning-200">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-8 h-8 rounded-full bg-warning flex items-center justify-center">
-                                <img src="https://img.rocket.new/generatedImages/rocket_gen_img_1b5bc9f42-1766986569025.png" alt="Late icon" class="w-4 h-4">
-                            </div>
-                            <div>
-                                <p class="font-semibold text-text-primary text-sm">James Wilson</p>
-                                <p class="text-xs text-text-secondary">STU-2024-0745</p>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <span class="badge badge-warning text-xs">Late Entry</span>
-                            <p class="text-xs text-text-secondary mt-1">6:15 AM</p>
-                        </div>
-                    </div>
-
-                    <!-- Recent Scan 3 -->
-                    <div class="flex items-center justify-between p-3 rounded-xl bg-primary-50 border border-primary-200">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-8 h-8 rounded-full bg-error flex items-center justify-center">
-                                <img src="https://img.rocket.new/generatedImages/rocket_gen_img_136d1b5bb-1768717525448.png" alt="Exit icon" class="w-4 h-4">
-                            </div>
-                            <div>
-                                <p class="font-semibold text-text-primary text-sm">Aisha Patel</p>
-                                <p class="text-xs text-text-secondary">STU-2024-1423</p>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <span class="badge badge-error text-xs">Exit</span>
-                            <p class="text-xs text-text-secondary mt-1">6:10 AM</p>
-                        </div>
-                    </div>
-                </div>
+        <div class="card">
+            <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-heading font-semibold text-text-primary">Recent RFID Scans</h3>
+            <span class="flex items-center space-x-2 text-sm text-success">
+                <span class="w-2 h-2 rounded-full bg-success animate-pulse"></span>
+                <span>Live Updates</span>
+            </span>
             </div>
-        </section>
 
-        <!-- Class Selector and Date Picker -->
-        <div class="flex justify-end mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full md:w-2/3 lg:w-1/2">
-                <div>
-                    <label class="label">Select Date</label>
-                    <input type="date" id="date-picker" class="input text-sm" value="2026-01-18">
-                </div>
-
-                <div>
-                    <label class="label">Search Student</label>
-                    <div class="relative">
-                        <input type="text"
-                            id="student-search"
-                            placeholder="Name or Student ID"
-                            class="input text-sm pl-10">
-                    </div>
-                </div>
+            <!-- ✅ Dynamic list goes here -->
+            <div id="recent-scans-list" class="space-y-3">
+            <div class="text-sm text-text-secondary">Loading recent scans...</div>
             </div>
         </div>
+        </section>
+
+        <!-- Load JS -->
+        <script src="../../assets/js/recent_scans.js"></script>
+
+
+     <!-- Class Selector and Date Picker -->
+<div class="flex justify-end mb-6">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full md:w-2/3 lg:w-1/2">
+    <div>
+      <label class="label">Select Date</label>
+      <input type="date" id="date-picker" class="input text-sm">
+    </div>
+
+    <div>
+      <label class="label">Search Student</label>
+      <div class="relative">
+        <input type="text"
+          id="student-search"
+          placeholder="Name or Student ID"
+          class="input text-sm pl-10">
+      </div>
+    </div>
+  </div>
+</div>
 
 
         <!-- Main Attendance Table -->
@@ -222,291 +180,44 @@ $photoUrl = !empty($teacher['profile_photo'])
             </div>
 
             <!-- Desktop Table View -->
-            <div class="hidden lg:block overflow-x-auto">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th class="w-12">
-                                <input type="checkbox" class="w-4 h-4 rounded border-border text-primary focus:ring-accent" aria-label="Select all students">
-                            </th>
-                            <th>Student Name</th>
-                            <th>Student ID</th>
-                            <th>Time In</th>
-                            <th>Time Out</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Student Row 1 - Present -->
-                        <tr>
-                            <td>
-                                <input type="checkbox" class="w-4 h-4 rounded border-border text-primary focus:ring-accent" aria-label="Select Emma Rodriguez">
-                            </td>
-                            <td>
-                                <div class="flex items-center space-x-3">
-                                    <img src="https://img.rocket.new/generatedImages/rocket_gen_img_13be3c843-1763299967170.png" 
-                                         alt="Emma Rodriguez student profile photo" 
-                                         class="w-10 h-10 rounded-full object-cover"
-                                         onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
-                                    <span class="font-semibold text-text-primary">Emma Rodriguez</span>
-                                </div>
-                            </td>
-                            <td class="data-text text-text-secondary">STU-2024-1156</td>
-                            <td class="data-text text-text-primary">08:15 AM</td>
-                            <td class="data-text text-text-secondary">—</td>
-                            <td><span class="badge badge-success">Present</span></td>
-                        </tr>
+<div class="hidden lg:block overflow-x-auto">
+  <table class="table">
+    <thead>
+      <tr>
+        <th class="w-12">
+        </th>
+        <th>Student Name</th>
+        <th>Student ID</th>
+        <th>Time In</th>
+        <th>Time Out</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="today-attendance-tbody">
+      <tr>
+        <td colspan="6" class="text-center text-text-secondary">Loading...</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
-                        <!-- Student Row 2 - Present -->
-                        <tr>
-                            <td>
-                                <input type="checkbox" class="w-4 h-4 rounded border-border text-primary focus:ring-accent" aria-label="Select Michael Chen">
-                            </td>
-                            <td>
-                                <div class="flex items-center space-x-3">
-                                    <img src="https://img.rocket.new/generatedImages/rocket_gen_img_16e9d8251-1763294843980.png" 
-                                         alt="Michael Chen student profile photo" 
-                                         class="w-10 h-10 rounded-full object-cover"
-                                         onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
-                                    <span class="font-semibold text-text-primary">Michael Chen</span>
-                                </div>
-                            </td>
-                            <td class="data-text text-text-secondary">STU-2024-0892</td>
-                            <td class="data-text text-text-primary">08:12 AM</td>
-                            <td class="data-text text-text-secondary">—</td>
-                            <td><span class="badge badge-success">Present</span></td>
-                        </tr>
+<!-- Mobile Card View -->
+<div id="today-attendance-mobile" class="lg:hidden space-y-4">
+  <div class="text-sm text-text-secondary">Loading...</div>
+</div>
 
-                        <!-- Student Row 3 - Late -->
-                        <tr>
-                            <td>
-                                <input type="checkbox" class="w-4 h-4 rounded border-border text-primary focus:ring-accent" aria-label="Select James Wilson">
-                            </td>
-                            <td>
-                                <div class="flex items-center space-x-3">
-                                    <img src="https://img.rocket.new/generatedImages/rocket_gen_img_16e9d8251-1763294843980.png" 
-                                         alt="James Wilson student profile photo" 
-                                         class="w-10 h-10 rounded-full object-cover"
-                                         onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
-                                    <span class="font-semibold text-text-primary">James Wilson</span>
-                                </div>
-                            </td>
-                            <td class="data-text text-text-secondary">STU-2024-0745</td>
-                            <td class="data-text text-warning">08:35 AM</td>
-                            <td class="data-text text-text-secondary">—</td>
-                            <td><span class="badge badge-warning">Late</span></td>
-                        </tr>
-
-                        <!-- Student Row 4 - Present -->
-                        <tr>
-                            <td>
-                                <input type="checkbox" class="w-4 h-4 rounded border-border text-primary focus:ring-accent" aria-label="Select Aisha Patel">
-                            </td>
-                            <td>
-                                <div class="flex items-center space-x-3">
-                                    <img src="https://img.rocket.new/generatedImages/rocket_gen_img_13be3c843-1763299967170.png" 
-                                         alt="Aisha Patel student profile photo" 
-                                         class="w-10 h-10 rounded-full object-cover"
-                                         onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
-                                    <span class="font-semibold text-text-primary">Aisha Patel</span>
-                                </div>
-                            </td>
-                            <td class="data-text text-text-secondary">STU-2024-1423</td>
-                            <td class="data-text text-text-primary">08:10 AM</td>
-                            <td class="data-text text-text-secondary">—</td>
-                            <td><span class="badge badge-success">Present</span></td>
-                        </tr>
-
-                        <!-- Student Row 5 - Absent -->
-                        <tr>
-                            <td>
-                                <input type="checkbox" class="w-4 h-4 rounded border-border text-primary focus:ring-accent" aria-label="Select Sofia Martinez">
-                            </td>
-                            <td>
-                                <div class="flex items-center space-x-3">
-                                    <img src="https://img.rocket.new/generatedImages/rocket_gen_img_1c40f9683-1763301361423.png" 
-                                         alt="Sofia Martinez student profile photo" 
-                                         class="w-10 h-10 rounded-full object-cover"
-                                         onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
-                                    <span class="font-semibold text-text-primary">Sofia Martinez</span>
-                                </div>
-                            </td>
-                            <td class="data-text text-text-secondary">STU-2024-0634</td>
-                            <td class="data-text text-text-secondary">—</td>
-                            <td class="data-text text-text-secondary">—</td>
-                            <td><span class="badge badge-error">Absent</span></td>
-                        </tr>
-
-                        <!-- Student Row 6 - Present -->
-                        <tr>
-                            <td>
-                                <input type="checkbox" class="w-4 h-4 rounded border-border text-primary focus:ring-accent" aria-label="Select David Kim">
-                            </td>
-                            <td>
-                                <div class="flex items-center space-x-3">
-                                    <img src="https://img.rocket.new/generatedImages/rocket_gen_img_16e9d8251-1763294843980.png" 
-                                         alt="David Kim student profile photo" 
-                                         class="w-10 h-10 rounded-full object-cover"
-                                         onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
-                                    <span class="font-semibold text-text-primary">David Kim</span>
-                                </div>
-                            </td>
-                            <td class="data-text text-text-secondary">STU-2024-0987</td>
-                            <td class="data-text text-text-primary">08:08 AM</td>
-                            <td class="data-text text-text-secondary">—</td>
-                            <td><span class="badge badge-success">Present</span></td>
-                        </tr>
-
-                        <!-- Student Row 7 - Late -->
-                        <tr>
-                            <td>
-                                <input type="checkbox" class="w-4 h-4 rounded border-border text-primary focus:ring-accent" aria-label="Select Olivia Thompson">
-                            </td>
-                            <td>
-                                <div class="flex items-center space-x-3">
-                                    <img src="https://img.rocket.new/generatedImages/rocket_gen_img_13eda94e2-1763299483841.png" 
-                                         alt="Olivia Thompson student profile photo" 
-                                         class="w-10 h-10 rounded-full object-cover"
-                                         onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
-                                    <span class="font-semibold text-text-primary">Olivia Thompson</span>
-                                </div>
-                            </td>
-                            <td class="data-text text-text-secondary">STU-2024-1289</td>
-                            <td class="data-text text-warning">08:32 AM</td>
-                            <td class="data-text text-text-secondary">—</td>
-                            <td><span class="badge badge-warning">Late</span></td>
-                        </tr>
-
-                        <!-- Student Row 8 - Present -->
-                        <tr>
-                            <td>
-                                <input type="checkbox" class="w-4 h-4 rounded border-border text-primary focus:ring-accent" aria-label="Select Liam Johnson">
-                            </td>
-                            <td>
-                                <div class="flex items-center space-x-3">
-                                    <img src="https://img.rocket.new/generatedImages/rocket_gen_img_1ece17484-1763301747443.png" 
-                                         alt="Liam Johnson student profile photo" 
-                                         class="w-10 h-10 rounded-full object-cover"
-                                         onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
-                                    <span class="font-semibold text-text-primary">Liam Johnson</span>
-                                </div>
-                            </td>
-                            <td class="data-text text-text-secondary">STU-2024-0521</td>
-                            <td class="data-text text-text-primary">08:14 AM</td>
-                            <td class="data-text text-text-secondary">—</td>
-                            <td><span class="badge badge-success">Present</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Mobile Card View -->
-            <div class="lg:hidden space-y-4">
-                <!-- Student Card 1 - Present -->
-                <div class="card p-4 hover:shadow-card-hover">
-                    <div class="flex items-start justify-between mb-3">
-                        <div class="flex items-center space-x-3">
-                            <img src="https://img.rocket.new/generatedImages/rocket_gen_img_13be3c843-1763299967170.png" 
-                                 alt="Emma Rodriguez student profile photo" 
-                                 class="w-12 h-12 rounded-full object-cover"
-                                 onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
-                            <div>
-                                <p class="font-semibold text-text-primary">Emma Rodriguez</p>
-                                <p class="text-sm data-text text-text-secondary">STU-2024-1156</p>
-                            </div>
-                        </div>
-                        <span class="badge badge-success">Present</span>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3 text-sm">
-                        <div>
-                            <p class="text-text-secondary mb-1">Time In</p>
-                            <p class="data-text font-semibold text-text-primary">08:15 AM</p>
-                        </div>
-                        <div>
-                            <p class="text-text-secondary mb-1">Time Out</p>
-                            <p class="data-text text-text-secondary">—</p>
-                        </div>
-                    </div>
-                    <button class="btn btn-outline w-full mt-4 h-10 text-sm">
-                        View Details
-                    </button>
-                </div>
-
-                <!-- Student Card 2 - Late -->
-                <div class="card p-4 hover:shadow-card-hover">
-                    <div class="flex items-start justify-between mb-3">
-                        <div class="flex items-center space-x-3">
-                            <img src="https://img.rocket.new/generatedImages/rocket_gen_img_16e9d8251-1763294843980.png" 
-                                 alt="James Wilson student profile photo" 
-                                 class="w-12 h-12 rounded-full object-cover"
-                                 onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
-                            <div>
-                                <p class="font-semibold text-text-primary">James Wilson</p>
-                                <p class="text-sm data-text text-text-secondary">STU-2024-0745</p>
-                            </div>
-                        </div>
-                        <span class="badge badge-warning">Late</span>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3 text-sm">
-                        <div>
-                            <p class="text-text-secondary mb-1">Time In</p>
-                            <p class="data-text font-semibold text-warning">08:35 AM</p>
-                        </div>
-                        <div>
-                            <p class="text-text-secondary mb-1">Time Out</p>
-                            <p class="data-text text-text-secondary">—</p>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- Student Card 3 - Absent -->
-                <div class="card p-4 hover:shadow-card-hover">
-                    <div class="flex items-start justify-between mb-3">
-                        <div class="flex items-center space-x-3">
-                            <img src="https://img.rocket.new/generatedImages/rocket_gen_img_1c40f9683-1763301361423.png" 
-                                 alt="Sofia Martinez student profile photo" 
-                                 class="w-12 h-12 rounded-full object-cover"
-                                 onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
-                            <div>
-                                <p class="font-semibold text-text-primary">Sofia Martinez</p>
-                                <p class="text-sm data-text text-text-secondary">STU-2024-0634</p>
-                            </div>
-                        </div>
-                        <span class="badge badge-error">Absent</span>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3 text-sm">
-                        <div>
-                            <p class="text-text-secondary mb-1">Time In</p>
-                            <p class="data-text text-text-secondary">—</p>
-                        </div>
-                        <div>
-                            <p class="text-text-secondary mb-1">Time Out</p>
-                            <p class="data-text text-text-secondary">—</p>
-                        </div>
-                    </div>
-                    <button class="btn btn-outline w-full mt-4 h-10 text-sm">
-                        View Details
-                    </button>
-                </div>
-            </div>
 
             <!-- Pagination -->
-            <div class="flex items-center justify-between mt-6 pt-6 border-t border-border">
-                <p class="text-sm text-text-secondary">Showing 8 of 32 students</p>
-                <div class="flex items-center space-x-2">
-                    <button class="btn-outline h-10 w-10 flex items-center justify-center" aria-label="Previous page">
-                        <img src="https://img.rocket.new/generatedImages/rocket_gen_img_1af02fb73-1768427135094.png" alt="Previous icon" class="w-5 h-5">
-                    </button>
-                    <button class="btn btn-primary h-10 w-10 flex items-center justify-center">1</button>
-                    <button class="btn-outline h-10 w-10 flex items-center justify-center">2</button>
-                    <button class="btn-outline h-10 w-10 flex items-center justify-center">3</button>
-                    <button class="btn-outline h-10 w-10 flex items-center justify-center">4</button>
-                    <button class="btn-outline h-10 w-10 flex items-center justify-center" aria-label="Next page">
-                        <img src="https://img.rocket.new/generatedImages/rocket_gen_img_125f820bf-1766427641023.png" alt="Next icon" class="w-5 h-5">
-                    </button>
-                </div>
-            </div>
+<div class="flex items-center justify-between mt-6 pt-6 border-t border-border">
+  <p id="attendance-pagination-info" class="text-sm text-text-secondary">
+    Loading...
+  </p>
+
+  <div id="attendance-pagination" class="flex items-center space-x-2">
+    <!-- buttons injected by JS -->
+  </div>
+</div>
+
         </section>
     </main>
 
@@ -550,6 +261,8 @@ $photoUrl = !empty($teacher['profile_photo'])
             </div>
         </div>
     </footer>
+    <script src="../js/recent_scans.js"></script>
+    <script src="../js/today_attendance.js"></script>
 
 <script id="dhws-dataInjector" src="../public/dhws-data-injector.js"></script>
 </body>

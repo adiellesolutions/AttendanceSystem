@@ -1,42 +1,31 @@
-// safety checks
-if (!Array.isArray(records)) {
-    console.warn("records is not an array", records);
-    return;
-}
-
-records.forEach(record => {
-    // safe fallbacks
-    const status  = record?.status ?? "unknown";
-    const timeIn  = record?.time_in ? formatTime(record.time_in) : "—";
-    const timeOut = record?.time_out ? formatTime(record.time_out) : "—";
-
-    // role-safe (teacher may not have RFID or same structure)
-    const badgeClass =
-        typeof getBadgeClass === "function"
-            ? getBadgeClass(status)
-            : "badge-secondary";
-
-    const displayStatus =
-        typeof capitalize === "function"
-            ? capitalize(status)
-            : status;
-
-    container.innerHTML += `
-        <div class="card p-4">
-            <span class="badge ${badgeClass}">
-                ${displayStatus}
-            </span>
-
-            <div class="grid grid-cols-2 gap-3 mt-2">
-                <div>
-                    <p>Time In</p>
-                    <p>${timeIn}</p>
-                </div>
-                <div>
-                    <p>Time Out</p>
-                    <p>${timeOut}</p>
-                </div>
-            </div>
-        </div>
-    `;
-});
+(() => {
+    let rfidAutofillInterval = null;
+  
+    function qs(id) { return document.getElementById(id); }
+  
+    window.startRFIDAutofill = function startRFIDAutofill() {
+      if (rfidAutofillInterval) return;
+  
+      const rfidInput = qs("um_card_uid");
+      if (!rfidInput) return;
+  
+      rfidAutofillInterval = setInterval(() => {
+        if (rfidInput.value) return;
+  
+        fetch("../../backend/api/rfid_latest.php")
+          .then(res => res.json())
+          .then(data => {
+            if (data?.uid) rfidInput.value = data.uid;
+          })
+          .catch(() => {});
+      }, 1000);
+    };
+  
+    window.stopRFIDAutofill = function stopRFIDAutofill() {
+      if (rfidAutofillInterval) {
+        clearInterval(rfidAutofillInterval);
+        rfidAutofillInterval = null;
+      }
+    };
+  })();
+  

@@ -27,13 +27,16 @@ $conn->begin_transaction();
 try {
     /* ---------- INSERT USER ---------- */
     $stmt = $conn->prepare(
-        "INSERT INTO users (username, password, role, status)
-         VALUES (?, ?, ?, ?)"
+        "INSERT INTO users (username, password, role, status, must_reset_password)
+         VALUES (?, ?, ?, ?, 1)"
     );
-    $stmt->bind_param("ssss", $username, $hashed, $role, $status);
-    $stmt->execute();
+    
+    if (!$stmt) throw new Exception("Prepare failed (users): " . $conn->error);
 
-    $user_id = $stmt->insert_id;
+    $stmt->bind_param("ssss", $username, $hashed, $role, $status);
+    if (!$stmt->execute()) throw new Exception("Execute failed (users): " . $stmt->error);
+
+    $user_id = $conn->insert_id; // ✅ correct
 
     /* ================= STUDENT ================= */
     if ($role === "student") {
@@ -46,21 +49,20 @@ try {
             throw new Exception("Student information is incomplete");
         }
 
+        // ✅ bind_param needs VARIABLES, not expressions
+        $student_email_db = ($email !== "") ? $email : null;
+
         /* INSERT STUDENT */
         $stmt = $conn->prepare(
             "INSERT INTO students (user_id, student_id, full_name, email)
              VALUES (?, ?, ?, ?)"
         );
-        $stmt->bind_param(
-            "isss",
-            $user_id,
-            $student_id_input,
-            $full_name,
-            $email ?: null
-        );
-        $stmt->execute();
+        if (!$stmt) throw new Exception("Prepare failed (students): " . $conn->error);
 
-        $student_db_id = $stmt->insert_id;
+        $stmt->bind_param("isss", $user_id, $student_id_input, $full_name, $student_email_db);
+        if (!$stmt->execute()) throw new Exception("Execute failed (students): " . $stmt->error);
+
+        $student_db_id = $conn->insert_id; // ✅ correct
 
         /* ---------- GUARDIAN ---------- */
         $guardian_name    = trim($_POST["guardian_full_name"] ?? "");
@@ -71,18 +73,16 @@ try {
             throw new Exception("Guardian name and email are required");
         }
 
+        $guardian_contact_db = ($guardian_contact !== "") ? $guardian_contact : null;
+
         $stmt = $conn->prepare(
             "INSERT INTO guardians (student_id, full_name, email, contact_no)
              VALUES (?, ?, ?, ?)"
         );
-        $stmt->bind_param(
-            "isss",
-            $student_db_id,
-            $guardian_name,
-            $guardian_email,
-            $guardian_contact ?: null
-        );
-        $stmt->execute();
+        if (!$stmt) throw new Exception("Prepare failed (guardians): " . $conn->error);
+
+        $stmt->bind_param("isss", $student_db_id, $guardian_name, $guardian_email, $guardian_contact_db);
+        if (!$stmt->execute()) throw new Exception("Execute failed (guardians): " . $stmt->error);
 
         /* ---------- RFID CARD ---------- */
         $card_uid    = trim($_POST["card_uid"] ?? "");
@@ -96,13 +96,10 @@ try {
             "INSERT INTO rfid_cards (student_id, card_uid, status, issue_date)
              VALUES (?, ?, ?, CURDATE())"
         );
-        $stmt->bind_param(
-            "iss",
-            $student_db_id,
-            $card_uid,
-            $card_status
-        );
-        $stmt->execute();
+        if (!$stmt) throw new Exception("Prepare failed (rfid_cards): " . $conn->error);
+
+        $stmt->bind_param("iss", $student_db_id, $card_uid, $card_status);
+        if (!$stmt->execute()) throw new Exception("Execute failed (rfid_cards): " . $stmt->error);
     }
 
     /* ================= TEACHER ================= */
@@ -116,18 +113,17 @@ try {
             throw new Exception("Teacher information is incomplete");
         }
 
+        // ✅ variable for nullable email
+        $teacher_email_db = ($teacher_mail !== "") ? $teacher_mail : null;
+
         $stmt = $conn->prepare(
             "INSERT INTO teachers (user_id, teacher_id, full_name, email)
              VALUES (?, ?, ?, ?)"
         );
-        $stmt->bind_param(
-            "isss",
-            $user_id,
-            $teacher_id,
-            $teacher_name,
-            $teacher_mail ?: null
-        );
-        $stmt->execute();
+        if (!$stmt) throw new Exception("Prepare failed (teachers): " . $conn->error);
+
+        $stmt->bind_param("isss", $user_id, $teacher_id, $teacher_name, $teacher_email_db);
+        if (!$stmt->execute()) throw new Exception("Execute failed (teachers): " . $stmt->error);
     }
 
     /* ---------------- COMMIT ---------------- */
@@ -138,10 +134,12 @@ try {
     $conn->rollback();
     http_response_code(400);
 
-    if (str_contains($e->getMessage(), "Duplicate entry")) {
-        echo "Username already exists. Please choose another one.";
+    $msg = $e->getMessage();
+
+    // Optional: friendlier duplicate handling
+    if (stripos($msg, "Duplicate entry") !== false) {
+        echo "Duplicate entry detected. Username/ID already exists.";
     } else {
-        echo $e->getMessage();
+        echo $msg;
     }
 }
-

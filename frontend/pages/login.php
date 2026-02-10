@@ -103,33 +103,31 @@
                     >
                 </div>
 
-                <!-- Password Field -->
                 <div class="mb-6">
-                    <div class="relative">
-                        <label for="password" class="label">Password</label>
+  <div class="relative">
+    <label for="password" class="label">Password</label>
 
-                        <input 
-                            type="password" 
-                            id="password" 
-                            name="password"
-                            class="input w-full pr-10"
-                            placeholder="Enter your password"
-                            required
-                            autocomplete="current-password"
-                        >
-                        <button 
-                            type="button" 
-                            class="absolute right-3 top-1/2 transform -translate-y-1/2 password-toggle"
-                            onclick="togglePassword()"
-                            aria-label="Toggle password visibility"
-                        >
-                        <span id="passwordIcon" class="w-5 h-5 flex items-center justify-center text-lg">👁️</span>
-                        </button>
-                        <div class="flex justify-between items-center mb-2">
-                        
-                    </div>
-                    </div>
-                </div>
+    <input 
+      type="password" 
+      id="password" 
+      name="password"
+      class="input w-full pr-10"
+      placeholder="Enter your password"
+      required
+      autocomplete="current-password"
+    >
+
+    <button 
+      type="button" 
+      class="absolute right-3 top-1/2 transform -translate-y-1/2 password-toggle"
+      onclick="togglePassword()"
+      aria-label="Toggle password visibility"
+    >
+      <span id="passwordIcon" class="w-5 h-5 flex items-center justify-center text-lg">👁️</span>
+    </button>
+  </div>
+</div>
+
 
                
 
@@ -157,84 +155,22 @@
         </div>
     </div>
 
-   <script>
-/* PASSWORD TOGGLE */
+    <script>
 function togglePassword() {
-    const passwordInput = document.getElementById('password');
-    const passwordIcon = document.getElementById('passwordIcon');
+  const passwordInput = document.getElementById('password');
+  const passwordIcon = document.getElementById('passwordIcon');
 
-    if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        passwordIcon.textContent = '👁️‍🗨️';
-    } else {
-        passwordInput.type = 'password';
-        passwordIcon.textContent = '👁️';
-    }
+  if (passwordInput.type === 'password') {
+    passwordInput.type = 'text';
+    passwordIcon.textContent = '👁️‍🗨️';
+  } else {
+    passwordInput.type = 'password';
+    passwordIcon.textContent = '👁️';
+  }
 }
 
-/* LOGIN SUBMIT */
 document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        const form = e.target;
-        const formData = new FormData(form);
-
-        const loginBtn = form.querySelector('button[type="submit"]');
-        const loginText = document.getElementById('loginText');
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const errorMessage = document.getElementById('errorMessage');
-
-        loginText.classList.add('hidden');
-        loadingSpinner.classList.remove('hidden');
-        errorMessage.classList.add('hidden');
-        loginBtn.disabled = true;
-
-        fetch("../../backend/api/login.php", {
-            method: "POST",
-            body: formData
-        })
-        .then(res => {
-            if (!res.ok) return res.text().then(t => { throw t; });
-            return res.json();
-        })
-        .then(data => {
-            if (data.role === "admin") {
-                window.location.href = "admin_dashboard.php";
-            } else if (data.role === "teacher") {
-                window.location.href = "teacher_dashboard.php";
-            } else {
-                window.location.href = "student_dashboard.php";
-            }
-        })
-        .catch(err => {
-            errorMessage.textContent = err;
-            errorMessage.classList.remove('hidden');
-            loginText.classList.remove('hidden');
-            loadingSpinner.classList.add('hidden');
-            loginBtn.disabled = false;
-        });
-    });
-});
-</script>
-
-<script>
-/* PASSWORD TOGGLE */
-function togglePassword() {
-    const passwordInput = document.getElementById('password');
-    const passwordIcon = document.getElementById('passwordIcon');
-
-    if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        passwordIcon.textContent = '👁️‍🗨️';
-    } else {
-        passwordInput.type = 'password';
-        passwordIcon.textContent = '👁️';
-    }
-}
-
-/* LOGIN SUBMIT */
-document.getElementById('loginForm').addEventListener('submit', function(e) {
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const form = e.target;
@@ -250,32 +186,44 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
     errorMessage.classList.add('hidden');
     loginBtn.disabled = true;
 
-    fetch("../../backend/api/login.php", {
-        method: "POST",
-        body: formData
-    })
-    .then(res => {
-        if (!res.ok) return res.text().then(t => { throw t; });
-        return res.json();
-    })
-    .then(data => {
-        if (data.role === "admin") {
-            window.location.href = "admin_dashboard.php";
-        } else if (data.role === "teacher") {
-            window.location.href = "teacher_dashboard.php";
-        } else {
-            window.location.href = "student_dashboard.php";
-        }
-    })
-    .catch(err => {
-        errorMessage.textContent = err;
-        errorMessage.classList.remove('hidden');
-        loginText.classList.remove('hidden');
-        loadingSpinner.classList.add('hidden');
-        loginBtn.disabled = false;
-    });
+    try {
+        const res = await fetch("../../backend/api/login.php", { method: "POST", body: formData });
+
+const ct = res.headers.get("content-type") || "";
+let data = null;
+
+if (ct.includes("application/json")) {
+  data = await res.json();
+} else {
+  const text = await res.text();
+  throw new Error(text || "Login failed");
+}
+
+if (!res.ok || data.success === false) throw new Error(data.message || "Invalid credentials");
+
+
+      // ✅ FIRST LOGIN: force reset
+      if (data.must_reset) {
+        window.location.href = "reset_password.php";
+        return;
+      }
+
+      // normal redirect
+      if (data.role === "admin") window.location.href = "admin_dashboard.php";
+      else if (data.role === "teacher") window.location.href = "teacher_dashboard.php";
+      else window.location.href = "student_dashboard.php";
+
+    } catch (err) {
+      errorMessage.textContent = err.message || "Login failed";
+      errorMessage.classList.remove('hidden');
+      loginText.classList.remove('hidden');
+      loadingSpinner.classList.add('hidden');
+      loginBtn.disabled = false;
+    }
+  });
 });
 </script>
+
 
 </body>
 </html>
