@@ -1,4 +1,4 @@
-CREATE DATABASE rfid_attendance_db
+CREATE DATABASE rfid_attendance_db;
 
 USE rfid_attendance_db;
 
